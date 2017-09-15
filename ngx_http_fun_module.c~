@@ -9,10 +9,7 @@
 //redisAsyncContext *redis_nginx_open_context(const char *host, int port, int database, redisAsyncContext **context);
 //void redis_nginx_force_close_context(redisAsyncContext **context);
 //void redis_nginx_ping_callback(redisAsyncContext *ac, void *rep, void *privdata);
-void freeReplyObject(void *reply);
-redisContext *redisConnectWithTimeout(const char *ip, int port, const struct timeval tv);
-void *redisCommand(redisContext *c, const char *format, ...);
-void freeReplyObject(void *reply);
+
 //static u_char ngx_fun_string[];// = "This is fun!";
 static char *ngx_http_fun(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static char *ngx_http_fun2(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
@@ -225,13 +222,13 @@ static ngx_int_t ngx_http_fun_handler(ngx_http_request_t *r){
 
 
 static ngx_int_t ngx_http_fun_handler2(ngx_http_request_t * r){
-
-//unsigned int j;
-    redisContext *c;
+redisContext *c;
     redisReply *reply;
-   
+    //const char *hostname =  "127.0.0.1";
+    //int port =  6379;
+
     struct timeval timeout = { 1, 500000 }; // 1.5 seconds
-    c = redisConnectWithTimeout("127.0.0.1", 6379, timeout);
+    c = redisConnectWithTimeout("127.0.0.1", 6349, timeout);
     if (c == NULL || c->err) {
         if (c) {
             printf("Connection error: %s\n", c->errstr);
@@ -244,27 +241,21 @@ static ngx_int_t ngx_http_fun_handler2(ngx_http_request_t * r){
 
     /* PING server */
     reply = redisCommand(c,"AUTH %s","redis@123@Azure");
-ngx_write_stdout(reply->str);    
-printf("PING: %s\n", reply->str);
-    freeReplyObject(reply);
- /* Set a key */
-    reply = redisCommand(c,"SET %s %s", "foo", "hello world");
-    printf("SET: %s\n", reply->str);
+    printf("PING: %s\n", reply->str);
     freeReplyObject(reply);
 
-    /* Set a key using binary safe API */
-    reply = redisCommand(c,"SET %b %b", "bar", (size_t) 3, "hello", (size_t) 5);
-    printf("SET (binary API): %s\n", reply->str);
-    freeReplyObject(reply);
+    /* Set a key */
+    reply = redisCommand(c,"SET %s %s", "foo", "hello world");
+    printf("SET: %s\n", reply->str);
+freeReplyObject(reply); 
 
 // redis_nginx_init();
 //redisAsyncContext *redis_server = NULL;
 //if (redis_nginx_open_context((const char *) "localhost", 6379, 0, &redis_server) != NULL) {
-  // redisAsyncCommand(redis_server, NULL, NULL, "SET %b %d-%d", r->uri.data, r->uri.len, r->headers_out.status, r->headers_out.content_length_n);
+ //   redisAsyncCommand(redis_server, NULL, NULL, "SET %b %d-%d", r->uri.data, r->uri.len, r->headers_out.status, r->headers_out.content_length_n);
 //}
 //redis_nginx_close_context(&redis_server);
-u_char ngx_fun_string[]="This is test 102";//(u_char *)r->uri.data;
-ngx_log_error(NGX_LOG_ERR,r->connection->log,0,"this is value of request data1 %c---------> data2 %c----->data3 %c body %c---->  end",r->uri.data,r->headers_out.status,r->headers_in.host); 
+u_char ngx_fun_string[]="hi pk";//(char *)search_hashed_headers_in(r, "host", sizeof("host"));  
 ngx_int_t rc;
   ngx_buf_t * b;
   ngx_chain_t out;
@@ -316,7 +307,6 @@ ngx_int_t rc;
   }
 // send the buffer chain of your response
   return ngx_http_output_filter(r, &out);
-//return ngx_http_send_response(r, NGX_HTTP_OK, &ngx_http_gif_type, &cv);
   }
 
 
